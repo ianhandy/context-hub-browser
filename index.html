@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Hub Browser — Explore Andrew Ng's API Documentation Registry</title>
+<meta name="description" content="Browse and search 1,500+ API documentation collections from Andrew Ng's context-hub. Beautiful visual discovery for coding agents.">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#1A0D00;--bg2:#241200;--bg3:#2E1800;--bg4:#3A2000;
+    --gold:#DDC165;--gold-light:#FFE9A3;--gold-dim:#8B7A3A;
+    --orange:#E5591C;--orange-glow:#FF6B2E;
+    --text:#E8DCC8;--text-dim:#9A8B70;--text-bright:#FFF8E8;
+    --border:#3A2A15;--border-light:#5A4020;
+    --card-bg:rgba(36,18,0,0.7);
+    --radius:12px;--radius-sm:8px;
+  }
+  html{font-size:16px;scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    line-height:1.6;min-height:100vh;overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;z-index:-1;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 0%,rgba(221,193,101,0.04) 0%,transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%,rgba(229,89,28,0.03) 0%,transparent 60%),
+      var(--bg);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+
+  /* Header */
+  .header{
+    padding:2rem 2rem 1.5rem;text-align:center;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,rgba(36,18,0,0.9) 0%,var(--bg) 100%);
+    position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);
+  }
+  .header h1{
+    font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;
+    background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--orange));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    margin-bottom:0.25rem;
+  }
+  .header .subtitle{
+    font-size:0.85rem;color:var(--text-dim);font-weight:400;
+    margin-bottom:1.25rem;
+  }
+  .header .subtitle a{color:var(--gold-dim);text-decoration:none}
+  .header .subtitle a:hover{color:var(--gold)}
+
+  /* Search */
+  .search-wrap{
+    max-width:640px;margin:0 auto;position:relative;
+  }
+  .search-wrap input{
+    width:100%;padding:0.75rem 1rem 0.75rem 2.75rem;
+    background:var(--bg2);border:1px solid var(--border);
+    border-radius:var(--radius);color:var(--text-bright);
+    font-size:0.95rem;outline:none;transition:all 0.2s;
+  }
+  .search-wrap input:focus{
+    border-color:var(--gold-dim);
+    box-shadow:0 0 0 3px rgba(221,193,101,0.1);
+  }
+  .search-wrap input::placeholder{color:var(--text-dim)}
+  .search-wrap .search-icon{
+    position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);
+    color:var(--text-dim);pointer-events:none;
+  }
+  .search-wrap .clear-btn{
+    position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);
+    background:none;border:none;color:var(--text-dim);cursor:pointer;
+    font-size:1.1rem;display:none;padding:0.25rem;
+  }
+  .search-wrap .clear-btn.visible{display:block}
+  .search-wrap .clear-btn:hover{color:var(--gold)}
+
+  /* Stats bar */
+  .stats{
+    display:flex;gap:1.5rem;justify-content:center;align-items:center;
+    padding:0.75rem 2rem;border-bottom:1px solid var(--border);
+    font-size:0.8rem;color:var(--text-dim);flex-wrap:wrap;
+  }
+  .stats .stat-num{color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* Filters */
+  .filters{
+    display:flex;gap:0.5rem;padding:0.75rem 2rem;
+    border-bottom:1px solid var(--border);
+    overflow-x:auto;flex-wrap:nowrap;
+    -webkit-overflow-scrolling:touch;
+  }
+  .filters::-webkit-scrollbar{display:none}
+  .filter-btn{
+    padding:0.35rem 0.85rem;border-radius:20px;
+    background:var(--bg2);border:1px solid var(--border);
+    color:var(--text-dim);font-size:0.78rem;cursor:pointer;
+    white-space:nowrap;transition:all 0.2s;flex-shrink:0;
+  }
+  .filter-btn:hover{border-color:var(--border-light);color:var(--text)}
+  .filter-btn.active{
+    background:linear-gradient(135deg,rgba(221,193,101,0.15),rgba(229,89,28,0.1));
+    border-color:var(--gold-dim);color:var(--gold);
+  }
+
+  /* Layout */
+  .main{padding:1.5rem 2rem 4rem;max-width:1400px;margin:0 auto}
+
+  /* Category sections */
+  .category-section{margin-bottom:2rem}
+  .category-header{
+    display:flex;align-items:center;gap:0.75rem;
+    margin-bottom:0.75rem;padding-bottom:0.5rem;
+    border-bottom:1px solid var(--border);
+  }
+  .category-header h2{
+    font-size:1rem;font-weight:600;color:var(--gold);
+    letter-spacing:-0.01em;
+  }
+  .category-count{
+    font-size:0.7rem;color:var(--text-dim);
+    background:var(--bg3);padding:0.15rem 0.5rem;
+    border-radius:10px;
+  }
+
+  /* Card grid */
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:0.75rem;
+  }
+
+  /* Cards */
+  .card{
+    background:var(--card-bg);border:1px solid var(--border);
+    border-radius:var(--radius-sm);padding:1rem;
+    cursor:pointer;transition:all 0.2s;position:relative;
+    overflow:hidden;
+  }
+  .card:hover{
+    border-color:var(--border-light);
+    transform:translateY(-1px);
+    box-shadow:0 4px 20px rgba(0,0,0,0.3);
+  }
+  .card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,var(--gold-dim),var(--orange),var(--gold-dim));
+    opacity:0;transition:opacity 0.2s;
+  }
+  .card:hover::before{opacity:1}
+  .card-name{
+    font-size:0.95rem;font-weight:600;color:var(--text-bright);
+    margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem;
+  }
+  .card-name .vendor{
+    font-size:0.7rem;color:var(--gold-dim);font-weight:500;
+    background:rgba(221,193,101,0.08);padding:0.1rem 0.45rem;
+    border-radius:4px;
+  }
+  .card-desc{
+    font-size:0.8rem;color:var(--text-dim);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;margin-bottom:0.5rem;line-height:1.5;
+  }
+  .card-meta{
+    display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;
+  }
+  .card-tag{
+    font-size:0.65rem;color:var(--text-dim);
+    background:var(--bg3);padding:0.1rem 0.4rem;
+    border-radius:4px;
+  }
+  .card-tag.lang{color:var(--orange);background:rgba(229,89,28,0.1)}
+  .card-tag.source-official{color:#4ade80;background:rgba(74,222,128,0.08)}
+  .card-tag.source-maintainer{color:var(--gold);background:rgba(221,193,101,0.08)}
+  .card-tag.source-community{color:#60a5fa;background:rgba(96,165,250,0.08)}
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed;inset:0;z-index:1000;
+    background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:2rem;overflow-y:auto;
+  }
+  .modal-overlay.open{display:flex}
+  .modal{
+    background:var(--bg2);border:1px solid var(--border-light);
+    border-radius:var(--radius);max-width:900px;width:100%;
+    margin-top:2rem;position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    animation:modalIn 0.2s ease-out;
+  }
+  @keyframes modalIn{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .modal-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);
+  }
+  .modal-head h2{
+    font-size:1.2rem;font-weight:700;color:var(--text-bright);
+  }
+  .modal-head .modal-vendor{
+    font-size:0.85rem;color:var(--gold-dim);margin-top:0.15rem;
+  }
+  .modal-close{
+    background:none;border:none;color:var(--text-dim);
+    font-size:1.5rem;cursor:pointer;padding:0.25rem 0.5rem;
+    border-radius:4px;line-height:1;
+  }
+  .modal-close:hover{color:var(--text);background:var(--bg3)}
+  .modal-info{
+    padding:1rem 1.5rem;display:flex;gap:1rem;flex-wrap:wrap;
+    border-bottom:1px solid var(--border);font-size:0.8rem;
+  }
+  .modal-info .info-item{
+    display:flex;align-items:center;gap:0.35rem;color:var(--text-dim);
+  }
+  .modal-info .info-val{color:var(--text)}
+  .modal-langs{
+    padding:0.75rem 1.5rem;border-bottom:1px solid var(--border);
+    display:flex;gap:0.5rem;flex-wrap:wrap;
+  }
+  .lang-btn{
+    padding:0.3rem 0.75rem;border-radius:6px;
+    background:var(--bg3);border:1px solid var(--border);
+    color:var(--text-dim);font-size:0.78rem;cursor:pointer;
+    transition:all 0.15s;
+  }
+  .lang-btn:hover{border-color:var(--border-light);color:var(--text)}
+  .lang-btn.active{
+    border-color:var(--orange);color:var(--orange);
+    background:rgba(229,89,28,0.1);
+  }
+  .modal-content{
+    padding:1.5rem;min-height:200px;max-height:60vh;overflow-y:auto;
+  }
+  .modal-content .loading{
+    text-align:center;color:var(--text-dim);padding:3rem;
+  }
+  .modal-content .loading .spinner{
+    display:inline-block;width:24px;height:24px;
+    border:2px solid var(--border);border-top-color:var(--gold);
+    border-radius:50%;animation:spin 0.6s linear infinite;
+    margin-bottom:0.5rem;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .modal-actions{
+    padding:0.75rem 1.5rem;border-top:1px solid var(--border);
+    display:flex;gap:0.5rem;justify-content:flex-end;
+  }
+  .action-btn{
+    padding:0.4rem 1rem;border-radius:6px;font-size:0.8rem;
+    cursor:pointer;transition:all 0.15s;
+  }
+  .action-btn.primary{
+    background:linear-gradient(135deg,var(--gold-dim),var(--orange));
+    border:none;color:#fff;font-weight:600;
+  }
+  .action-btn.primary:hover{filter:brightness(1.15)}
+  .action-btn.secondary{
+    background:var(--bg3);border:1px solid var(--border);color:var(--text-dim);
+  }
+  .action-btn.secondary:hover{border-color:var(--border-light);color:var(--text)}
+  .copied-toast{
+    position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);
+    background:var(--gold);color:var(--bg);font-weight:600;
+    padding:0.5rem 1.25rem;border-radius:8px;font-size:0.85rem;
+    opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:2000;
+  }
+  .copied-toast.show{opacity:1}
+
+  /* Markdown rendering */
+  .doc-content{color:var(--text);font-size:0.88rem;line-height:1.7}
+  .doc-content h1{font-size:1.3rem;color:var(--gold-light);margin:1.5rem 0 0.75rem;font-weight:700;border-bottom:1px solid var(--border);padding-bottom:0.5rem}
+  .doc-content h2{font-size:1.1rem;color:var(--gold);margin:1.25rem 0 0.5rem;font-weight:600}
+  .doc-content h3{font-size:0.95rem;color:var(--text-bright);margin:1rem 0 0.4rem;font-weight:600}
+  .doc-content h4,.doc-content h5,.doc-content h6{font-size:0.88rem;color:var(--text-bright);margin:0.75rem 0 0.3rem;font-weight:600}
+  .doc-content p{margin:0.5rem 0}
+  .doc-content code{
+    background:var(--bg3);color:var(--orange);
+    padding:0.15rem 0.4rem;border-radius:4px;font-size:0.82rem;
+    font-family:'SF Mono',Monaco,Consolas,monospace;
+  }
+  .doc-content pre{
+    background:var(--bg);border:1px solid var(--border);
+    border-radius:var(--radius-sm);padding:1rem;
+    overflow-x:auto;margin:0.75rem 0;
+  }
+  .doc-content pre code{
+    background:none;color:var(--text);padding:0;
+    font-size:0.8rem;line-height:1.6;
+  }
+  .doc-content a{color:var(--gold);text-decoration:none}
+  .doc-content a:hover{text-decoration:underline}
+  .doc-content ul,.doc-content ol{padding-left:1.5rem;margin:0.5rem 0}
+  .doc-content li{margin:0.25rem 0}
+  .doc-content blockquote{
+    border-left:3px solid var(--gold-dim);padding:0.5rem 1rem;
+    margin:0.75rem 0;color:var(--text-dim);background:rgba(221,193,101,0.03);
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .doc-content table{
+    width:100%;border-collapse:collapse;margin:0.75rem 0;font-size:0.82rem;
+  }
+  .doc-content th,.doc-content td{
+    padding:0.5rem 0.75rem;border:1px solid var(--border);text-align:left;
+  }
+  .doc-content th{background:var(--bg3);color:var(--gold);font-weight:600}
+  .doc-content hr{border:none;border-top:1px solid var(--border);margin:1rem 0}
+
+  /* Empty state */
+  .empty-state{
+    text-align:center;padding:4rem 2rem;color:var(--text-dim);
+  }
+  .empty-state .empty-icon{font-size:3rem;margin-bottom:1rem;opacity:0.3}
+  .empty-state h3{color:var(--text);margin-bottom:0.5rem}
+
+  /* Loading state */
+  .loading-state{
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;min-height:60vh;gap:1rem;
+  }
+  .loading-state .big-spinner{
+    width:48px;height:48px;
+    border:3px solid var(--border);border-top-color:var(--gold);
+    border-radius:50%;animation:spin 0.8s linear infinite;
+  }
+  .loading-state p{color:var(--text-dim);font-size:0.9rem}
+
+  /* Error state */
+  .error-state{
+    text-align:center;padding:4rem 2rem;
+  }
+  .error-state h3{color:var(--orange);margin-bottom:0.5rem}
+  .error-state p{color:var(--text-dim);margin-bottom:1rem}
+  .error-state button{
+    padding:0.5rem 1.5rem;border-radius:var(--radius-sm);
+    background:var(--bg3);border:1px solid var(--border);
+    color:var(--gold);cursor:pointer;font-size:0.85rem;
+  }
+
+  /* View toggle */
+  .view-controls{
+    display:flex;align-items:center;gap:0.75rem;
+    padding:0.75rem 2rem;border-bottom:1px solid var(--border);
+    justify-content:space-between;
+  }
+  .view-controls .left{display:flex;align-items:center;gap:0.75rem}
+  .sort-select{
+    background:var(--bg2);border:1px solid var(--border);
+    color:var(--text-dim);padding:0.3rem 0.6rem;border-radius:6px;
+    font-size:0.78rem;cursor:pointer;outline:none;
+  }
+  .sort-select:focus{border-color:var(--gold-dim)}
+  .group-toggle{
+    display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;
+  }
+  .group-toggle button{
+    padding:0.3rem 0.7rem;background:var(--bg2);border:none;
+    color:var(--text-dim);font-size:0.75rem;cursor:pointer;
+    border-right:1px solid var(--border);transition:all 0.15s;
+  }
+  .group-toggle button:last-child{border-right:none}
+  .group-toggle button.active{background:var(--bg4);color:var(--gold)}
+
+  /* Responsive */
+  @media(max-width:768px){
+    .header{padding:1.5rem 1rem 1rem}
+    .header h1{font-size:1.4rem}
+    .main{padding:1rem}
+    .filters{padding:0.75rem 1rem}
+    .stats{padding:0.5rem 1rem;gap:1rem}
+    .view-controls{padding:0.5rem 1rem;flex-wrap:wrap}
+    .card-grid{grid-template-columns:1fr}
+    .modal{margin-top:0.5rem}
+    .modal-content{max-height:50vh}
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>Context Hub Browser</h1>
+  <p class="subtitle">Browse <a href="https://github.com/andrewyng/context-hub" target="_blank" rel="noopener">Andrew Ng's context-hub</a> — curated API docs for coding agents</p>
+  <div class="search-wrap">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="search" placeholder="Search APIs, libraries, frameworks..." autocomplete="off" spellcheck="false">
+    <button class="clear-btn" id="clearSearch" aria-label="Clear search">&times;</button>
+  </div>
+</header>
+
+<div class="stats" id="stats"></div>
+<div class="filters" id="filters"></div>
+<div class="view-controls">
+  <div class="left">
+    <div class="group-toggle" id="groupToggle">
+      <button data-group="vendor" class="active">By vendor</button>
+      <button data-group="flat">All</button>
+    </div>
+    <select class="sort-select" id="sortSelect">
+      <option value="name">Sort: Name</option>
+      <option value="updated">Sort: Recently updated</option>
+      <option value="size">Sort: Largest first</option>
+    </select>
+  </div>
+  <span id="resultCount" style="font-size:0.78rem;color:var(--text-dim)"></span>
+</div>
+
+<main class="main" id="main">
+  <div class="loading-state" id="loadingState">
+    <div class="big-spinner"></div>
+    <p>Loading registry from context-hub CDN...</p>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="modalTitle"></h2>
+        <div class="modal-vendor" id="modalVendor"></div>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-info" id="modalInfo"></div>
+    <div class="modal-langs" id="modalLangs"></div>
+    <div class="modal-content" id="modalContent">
+      <div class="loading"><div class="spinner"></div><br>Loading documentation...</div>
+    </div>
+    <div class="modal-actions">
+      <button class="action-btn secondary" id="copyCmd">Copy install command</button>
+      <button class="action-btn primary" id="viewGithub">View on GitHub</button>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied!</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const REGISTRY_URL = 'https://cdn.aichub.org/v1/registry.json';
+  const BASE_URL = 'https://cdn.aichub.org/v1';
+  const GITHUB_CONTENT = 'https://github.com/andrewyng/context-hub/tree/main/content';
+
+  let registry = null;
+  let allDocs = [];
+  let allSkills = [];
+  let currentFilter = 'all';
+  let currentSort = 'name';
+  let currentGroup = 'vendor';
+  let currentSearch = '';
+  let currentDoc = null;
+  let currentLang = null;
+
+  // DOM
+  const $main = document.getElementById('main');
+  const $search = document.getElementById('search');
+  const $clearSearch = document.getElementById('clearSearch');
+  const $stats = document.getElementById('stats');
+  const $filters = document.getElementById('filters');
+  const $sortSelect = document.getElementById('sortSelect');
+  const $groupToggle = document.getElementById('groupToggle');
+  const $resultCount = document.getElementById('resultCount');
+  const $modalOverlay = document.getElementById('modalOverlay');
+  const $modal = document.getElementById('modal');
+  const $modalTitle = document.getElementById('modalTitle');
+  const $modalVendor = document.getElementById('modalVendor');
+  const $modalInfo = document.getElementById('modalInfo');
+  const $modalLangs = document.getElementById('modalLangs');
+  const $modalContent = document.getElementById('modalContent');
+  const $modalClose = document.getElementById('modalClose');
+  const $copyCmd = document.getElementById('copyCmd');
+  const $viewGithub = document.getElementById('viewGithub');
+  const $toast = document.getElementById('toast');
+
+  // Fetch registry
+  async function loadRegistry() {
+    try {
+      const res = await fetch(REGISTRY_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      registry = await res.json();
+      allDocs = registry.docs || [];
+      allSkills = registry.skills || [];
+      init();
+    } catch (err) {
+      $main.innerHTML = `
+        <div class="error-state">
+          <h3>Failed to load registry</h3>
+          <p>${escapeHtml(err.message)}</p>
+          <button onclick="location.reload()">Retry</button>
+        </div>`;
+    }
+  }
+
+  function init() {
+    renderStats();
+    renderFilters();
+    renderCards();
+    setupEvents();
+  }
+
+  // Get unique vendors
+  function getVendors() {
+    const set = new Set();
+    allDocs.forEach(d => set.add(d.id.split('/')[0]));
+    return [...set].sort();
+  }
+
+  // Get top tags for filters
+  function getTopTags(n) {
+    const counts = {};
+    allDocs.forEach(d => {
+      (d.tags || []).forEach(t => {
+        counts[t] = (counts[t] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, n)
+      .map(e => e[0]);
+  }
+
+  function renderStats() {
+    const vendors = getVendors();
+    const totalLangs = new Set();
+    allDocs.forEach(d => (d.languages || []).forEach(l => totalLangs.add(l.language)));
+    $stats.innerHTML = `
+      <span><span class="stat-num">${allDocs.length.toLocaleString()}</span> docs</span>
+      <span><span class="stat-num">${allSkills.length}</span> skills</span>
+      <span><span class="stat-num">${vendors.length}</span> vendors</span>
+      <span><span class="stat-num">${totalLangs.size}</span> languages</span>
+    `;
+  }
+
+  function renderFilters() {
+    const topTags = getTopTags(20);
+    let html = `<button class="filter-btn active" data-filter="all">All</button>`;
+    html += `<button class="filter-btn" data-filter="__skills__">Skills</button>`;
+    topTags.forEach(tag => {
+      html += `<button class="filter-btn" data-filter="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`;
+    });
+    $filters.innerHTML = html;
+  }
+
+  function getFilteredDocs() {
+    let docs = currentFilter === '__skills__' ? [] : [...allDocs];
+    let skills = currentFilter === '__skills__' ? [...allSkills] :
+                 currentFilter === 'all' ? [] : [];
+
+    if (currentFilter !== 'all' && currentFilter !== '__skills__') {
+      docs = docs.filter(d => (d.tags || []).includes(currentFilter));
+    }
+
+    if (currentSearch) {
+      const q = currentSearch.toLowerCase();
+      docs = docs.filter(d =>
+        d.id.toLowerCase().includes(q) ||
+        d.name.toLowerCase().includes(q) ||
+        (d.description || '').toLowerCase().includes(q) ||
+        (d.tags || []).some(t => t.toLowerCase().includes(q))
+      );
+      skills = skills.filter(s =>
+        s.id.toLowerCase().includes(q) ||
+        s.name.toLowerCase().includes(q) ||
+        (s.description || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Sort
+    const sortFn = getSortFn();
+    docs.sort(sortFn);
+
+    return { docs, skills };
+  }
+
+  function getSortFn() {
+    switch (currentSort) {
+      case 'updated':
+        return (a, b) => {
+          const aDate = getLatestDate(a);
+          const bDate = getLatestDate(b);
+          return bDate.localeCompare(aDate);
+        };
+      case 'size':
+        return (a, b) => getTotalSize(b) - getTotalSize(a);
+      default: // name
+        return (a, b) => a.id.localeCompare(b.id);
+    }
+  }
+
+  function getLatestDate(doc) {
+    let latest = '';
+    (doc.languages || []).forEach(l => {
+      (l.versions || []).forEach(v => {
+        if (v.lastUpdated && v.lastUpdated > latest) latest = v.lastUpdated;
+      });
+    });
+    return latest || '0000-00-00';
+  }
+
+  function getTotalSize(doc) {
+    let total = 0;
+    (doc.languages || []).forEach(l => {
+      (l.versions || []).forEach(v => { total += v.size || 0; });
+    });
+    return total;
+  }
+
+  function renderCards() {
+    const { docs, skills } = getFilteredDocs();
+    const total = docs.length + skills.length;
+    $resultCount.textContent = `${total.toLocaleString()} result${total !== 1 ? 's' : ''}`;
+
+    if (total === 0) {
+      $main.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">&#128269;</div>
+          <h3>No results found</h3>
+          <p>Try a different search term or filter</p>
+        </div>`;
+      return;
+    }
+
+    let html = '';
+
+    if (skills.length > 0) {
+      html += `<div class="category-section">
+        <div class="category-header"><h2>Skills</h2><span class="category-count">${skills.length}</span></div>
+        <div class="card-grid">${skills.map(s => renderSkillCard(s)).join('')}</div>
+      </div>`;
+    }
+
+    if (currentGroup === 'vendor') {
+      const groups = {};
+      docs.forEach(d => {
+        const vendor = d.id.split('/')[0];
+        if (!groups[vendor]) groups[vendor] = [];
+        groups[vendor].push(d);
+      });
+      const sortedVendors = Object.keys(groups).sort();
+      sortedVendors.forEach(vendor => {
+        const items = groups[vendor];
+        html += `<div class="category-section">
+          <div class="category-header"><h2>${escapeHtml(vendor)}</h2><span class="category-count">${items.length}</span></div>
+          <div class="card-grid">${items.map(d => renderDocCard(d)).join('')}</div>
+        </div>`;
+      });
+    } else {
+      html += `<div class="card-grid">${docs.map(d => renderDocCard(d)).join('')}</div>`;
+    }
+
+    $main.innerHTML = html;
+  }
+
+  function renderDocCard(doc) {
+    const vendor = doc.id.split('/')[0];
+    const langs = (doc.languages || []).map(l => l.language);
+    const desc = doc.description || 'No description';
+    return `<div class="card" data-doc-id="${escapeHtml(doc.id)}">
+      <div class="card-name">
+        ${escapeHtml(doc.name)}
+        <span class="vendor">${escapeHtml(vendor)}</span>
+      </div>
+      <div class="card-desc">${escapeHtml(desc)}</div>
+      <div class="card-meta">
+        ${langs.map(l => `<span class="card-tag lang">${escapeHtml(l)}</span>`).join('')}
+        <span class="card-tag source-${doc.source || 'community'}">${escapeHtml(doc.source || 'community')}</span>
+      </div>
+    </div>`;
+  }
+
+  function renderSkillCard(skill) {
+    const vendor = skill.id.split('/')[0];
+    const desc = skill.description || 'No description';
+    return `<div class="card" data-skill-id="${escapeHtml(skill.id)}">
+      <div class="card-name">
+        ${escapeHtml(skill.name)}
+        <span class="vendor">${escapeHtml(vendor)}</span>
+      </div>
+      <div class="card-desc">${escapeHtml(desc)}</div>
+      <div class="card-meta">
+        <span class="card-tag" style="color:var(--gold-light);background:rgba(255,233,163,0.08)">skill</span>
+        <span class="card-tag source-${skill.source || 'community'}">${escapeHtml(skill.source || 'community')}</span>
+      </div>
+    </div>`;
+  }
+
+  // Modal
+  function openDocModal(docId) {
+    const doc = allDocs.find(d => d.id === docId);
+    if (!doc) return;
+    currentDoc = doc;
+
+    const vendor = doc.id.split('/')[0];
+    $modalTitle.textContent = doc.name;
+    $modalVendor.textContent = vendor;
+
+    $modalInfo.innerHTML = `
+      <div class="info-item">Source: <span class="info-val">${escapeHtml(doc.source || 'community')}</span></div>
+      <div class="info-item">Tags: <span class="info-val">${(doc.tags || []).map(t => escapeHtml(t)).join(', ')}</span></div>
+    `;
+
+    const langs = doc.languages || [];
+    if (langs.length > 0) {
+      $modalLangs.innerHTML = langs.map((l, i) =>
+        `<button class="lang-btn${i === 0 ? ' active' : ''}" data-lang="${i}">${escapeHtml(l.language)} (v${escapeHtml(l.recommendedVersion || l.versions[0]?.version || '?')})</button>`
+      ).join('');
+      $modalLangs.style.display = '';
+      currentLang = 0;
+      loadDocContent(doc, 0);
+    } else {
+      $modalLangs.style.display = 'none';
+      $modalContent.innerHTML = '<p style="color:var(--text-dim)">No documentation content available.</p>';
+    }
+
+    $copyCmd.onclick = () => {
+      const cmd = `chub add ${doc.id}`;
+      navigator.clipboard.writeText(cmd).then(() => showToast('Copied: ' + cmd));
+    };
+    $viewGithub.onclick = () => {
+      window.open(`${GITHUB_CONTENT}/${vendor}`, '_blank');
+    };
+
+    $modalOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function openSkillModal(skillId) {
+    const skill = allSkills.find(s => s.id === skillId);
+    if (!skill) return;
+    currentDoc = skill;
+
+    const vendor = skill.id.split('/')[0];
+    $modalTitle.textContent = skill.name + ' (Skill)';
+    $modalVendor.textContent = vendor;
+
+    $modalInfo.innerHTML = `
+      <div class="info-item">Source: <span class="info-val">${escapeHtml(skill.source || 'community')}</span></div>
+      <div class="info-item">Size: <span class="info-val">${formatSize(skill.size || 0)}</span></div>
+      <div class="info-item">Updated: <span class="info-val">${escapeHtml(skill.lastUpdated || 'unknown')}</span></div>
+    `;
+    $modalLangs.style.display = 'none';
+
+    const url = `${(registry.base_url || BASE_URL)}/${skill.path}/SKILL.md`;
+    loadMdContent(url);
+
+    $copyCmd.onclick = () => {
+      const cmd = `chub add ${skill.id}`;
+      navigator.clipboard.writeText(cmd).then(() => showToast('Copied: ' + cmd));
+    };
+    $viewGithub.onclick = () => {
+      window.open(`${GITHUB_CONTENT}/${vendor}`, '_blank');
+    };
+
+    $modalOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  async function loadDocContent(doc, langIdx) {
+    const lang = doc.languages[langIdx];
+    if (!lang) return;
+    const ver = lang.versions.find(v => v.version === lang.recommendedVersion) || lang.versions[0];
+    if (!ver) return;
+
+    const url = `${(registry.base_url || BASE_URL)}/${ver.path}/DOC.md`;
+    $modalContent.innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading documentation...</div>';
+
+    // Update info with version details
+    const sizeStr = formatSize(ver.size || 0);
+    $modalInfo.innerHTML = `
+      <div class="info-item">Source: <span class="info-val">${escapeHtml(doc.source || 'community')}</span></div>
+      <div class="info-item">Version: <span class="info-val">${escapeHtml(ver.version)}</span></div>
+      <div class="info-item">Size: <span class="info-val">${sizeStr}</span></div>
+      <div class="info-item">Updated: <span class="info-val">${escapeHtml(ver.lastUpdated || 'unknown')}</span></div>
+    `;
+
+    await loadMdContent(url);
+  }
+
+  async function loadMdContent(url) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      let md = await res.text();
+      // Strip YAML frontmatter
+      md = md.replace(/^---[\s\S]*?---\s*/, '');
+      $modalContent.innerHTML = `<div class="doc-content">${renderMarkdown(md)}</div>`;
+    } catch (err) {
+      $modalContent.innerHTML = `<p style="color:var(--orange)">Failed to load: ${escapeHtml(err.message)}</p>`;
+    }
+  }
+
+  function closeModal() {
+    $modalOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+    currentDoc = null;
+    currentLang = null;
+  }
+
+  // Simple markdown renderer
+  function renderMarkdown(md) {
+    let html = md;
+    // Code blocks
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+      `<pre><code class="language-${lang}">${escapeHtml(code.trim())}</code></pre>`
+    );
+    // Inline code
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Headers
+    html = html.replace(/^######\s+(.+)$/gm, '<h6>$1</h6>');
+    html = html.replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>');
+    html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+    // Bold & italic
+    html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    // Blockquotes
+    html = html.replace(/^>\s+(.+)$/gm, '<blockquote>$1</blockquote>');
+    // Horizontal rules
+    html = html.replace(/^---+$/gm, '<hr>');
+    // Unordered lists
+    html = html.replace(/^[\s]*[-*]\s+(.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>[\s\S]*?<\/li>)/g, (match) => {
+      if (!match.startsWith('<ul>')) return '<ul>' + match + '</ul>';
+      return match;
+    });
+    // Merge adjacent uls
+    html = html.replace(/<\/ul>\s*<ul>/g, '');
+    // Paragraphs — wrap standalone lines
+    html = html.replace(/^(?!<[a-z])((?!<\/)[^\n]+)$/gm, '<p>$1</p>');
+    // Clean up empty paragraphs
+    html = html.replace(/<p>\s*<\/p>/g, '');
+
+    return html;
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function showToast(msg) {
+    $toast.textContent = msg;
+    $toast.classList.add('show');
+    setTimeout(() => $toast.classList.remove('show'), 2000);
+  }
+
+  // Events
+  function setupEvents() {
+    // Search
+    let searchTimeout;
+    $search.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      const val = $search.value.trim();
+      $clearSearch.classList.toggle('visible', val.length > 0);
+      searchTimeout = setTimeout(() => {
+        currentSearch = val;
+        renderCards();
+      }, 150);
+    });
+    $clearSearch.addEventListener('click', () => {
+      $search.value = '';
+      $clearSearch.classList.remove('visible');
+      currentSearch = '';
+      renderCards();
+      $search.focus();
+    });
+
+    // Filters
+    $filters.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      $filters.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderCards();
+    });
+
+    // Sort
+    $sortSelect.addEventListener('change', () => {
+      currentSort = $sortSelect.value;
+      renderCards();
+    });
+
+    // Group toggle
+    $groupToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      $groupToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentGroup = btn.dataset.group;
+      renderCards();
+    });
+
+    // Card clicks
+    $main.addEventListener('click', (e) => {
+      const card = e.target.closest('.card');
+      if (!card) return;
+      if (card.dataset.docId) openDocModal(card.dataset.docId);
+      else if (card.dataset.skillId) openSkillModal(card.dataset.skillId);
+    });
+
+    // Modal
+    $modalClose.addEventListener('click', closeModal);
+    $modalOverlay.addEventListener('click', (e) => {
+      if (e.target === $modalOverlay) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && $modalOverlay.classList.contains('open')) closeModal();
+      if (e.key === '/' && !$modalOverlay.classList.contains('open') && document.activeElement !== $search) {
+        e.preventDefault();
+        $search.focus();
+      }
+    });
+
+    // Lang buttons in modal
+    $modalLangs.addEventListener('click', (e) => {
+      const btn = e.target.closest('.lang-btn');
+      if (!btn || !currentDoc) return;
+      $modalLangs.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLang = parseInt(btn.dataset.lang);
+      loadDocContent(currentDoc, currentLang);
+    });
+  }
+
+  // Keyboard shortcut hint
+  document.addEventListener('DOMContentLoaded', () => {
+    $search.setAttribute('placeholder', 'Search APIs, libraries, frameworks... (press / to focus)');
+  });
+
+  // Go
+  loadRegistry();
+})();
+</script>
+</body>
+</html>
